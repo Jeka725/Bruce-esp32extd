@@ -1,10 +1,35 @@
 from os.path import join, isfile
-from os import rename, remove
+from os import rename, remove, environ
 import sys
 
 Import("env")
 
-FRAMEWORK_DIR = env.PioPlatform().get_package_dir("framework-arduinoespressif32")
+# Пытаемся найти framework через pioarduino
+FRAMEWORK_DIR = None
+try:
+    FRAMEWORK_DIR = env.PioPlatform().get_package_dir("framework-arduinoespressif32")
+except:
+    pass
+
+# Если не нашли — ищем в ~/.platformio/packages/
+if not FRAMEWORK_DIR or not isfile(join(FRAMEWORK_DIR, "package.json")):
+    home = environ.get("HOME", "")
+    candidate = join(home, ".platformio", "packages", "framework-arduinoespressif32")
+    if isfile(join(candidate, "package.json")):
+        FRAMEWORK_DIR = candidate
+    else:
+        # Ищем через glob
+        import glob
+        matches = glob.glob(join(home, ".platformio", "packages", "framework-arduinoespressif32*"))
+        for m in matches:
+            if isfile(join(m, "package.json")):
+                FRAMEWORK_DIR = m
+                break
+
+if not FRAMEWORK_DIR or not isfile(join(FRAMEWORK_DIR, "package.json")):
+    print("Framework not found — skipping patch")
+    env.Exit(0)
+
 patchflag_path = join(FRAMEWORK_DIR, ".patched")
 board_mcu = env.BoardConfig()
 mcu = board_mcu.get("build.mcu", "")

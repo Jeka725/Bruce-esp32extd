@@ -21,10 +21,10 @@ jobs:
         run: pip install platformio
 
       - name: Build
-        run: pio run -e esp32-s3-devkitc-1
+        run: pio run -e esp32-s3-devkitc-1-psram
 
       - name: Upload bin
         uses: actions/upload-artifact@v4
         with:
           name: bruce-bin
-          path: .pio/build/esp32-s3-devkitc-1/firmware.bin
+          path: .pio/build/esp32-s3-devkitc-1-psram/firmware.bin

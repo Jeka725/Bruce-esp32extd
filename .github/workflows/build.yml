@@ -23,22 +23,12 @@ jobs:
       - name: Install platform
         run: pio pkg install -g -p "https://github.com/pioarduino/platform-espressif32/releases/download/54.03.20/platform-espressif32.zip"
 
-      - name: Patch libnet80211
-        run: |
-          pio pkg install -p espressif32 -t toolchain-xtensa-esp32s3 || true
-          f="$HOME/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/lib/libnet80211.a"
-          t="$HOME/.platformio/packages/toolchain-xtensa-esp32s3/xtensa-esp32s3-elf/bin/objcopy"
-          if [[ -f "$f" && -f "$t" ]]; then
-            $t --weaken-symbol=ieee80211_raw_frame_sanity_check "$f" "${f}.temp"
-            mv "$f" "${f}.old"
-            mv "${f}.temp" "$f"
-          fi
-
       - name: Build
         run: pio run -e esp32-s3-devkitc-1-psram
 
-      - name: Upload bin
+      - name: Upload all bin files
         uses: actions/upload-artifact@v4
         with:
           name: bruce-bin
-          path: .pio/build/esp32-s3-devkitc-1-psram/firmware.bin
+          path: .pio/build/esp32-s3-devkitc-1-psram/*.bin
+          if-no-files-found: error
